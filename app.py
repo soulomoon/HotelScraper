@@ -7,13 +7,6 @@ from parser import *
 from cssname import SPECIAL_URL
 from urltojson import url_to_dict
 
-class Validator:
-    def _process_date(self, date):
-        dl = date.split('-')
-        if len(dl) != 3:
-            raise 'date imput error, should be in formate xxxx-xx-xx'
-        return dl
-
 PARAMS_DICT = {
     "checkin_year_month_monthday": "2017-12-14",
     "checkout_year_month_monthday": "2017-12-15",
@@ -76,6 +69,16 @@ class PagingScraper(ABC):
     def get_init_dict(self):
         pass
 
+    @property
+    def params_dict(self):
+        if not hasattr(self, "_params_dict"):
+            self._params_dict =  self.get_init_dict
+        return self._params_dict
+
+    @params_dict.setter
+    def params_dict(self, value):
+        self._params_dict = value
+
     def get_all_pages(self):
         while self.set_next_url():
             self.collect()
@@ -100,16 +103,6 @@ class BookingScraper(PagingScraper):
         return PARAMS_DICT.copy()
 
     @property
-    def params_dict(self):
-        if not hasattr(self, "_params_dict"):
-            self._params_dict =  self.get_init_dict
-        return self._params_dict
-
-    @params_dict.setter
-    def params_dict(self, value):
-        self._params_dict = value
-
-    @property
     def url_home(self):
         return "https://www.booking.com"
 
@@ -126,20 +119,20 @@ class SpecialBookingScraper(BookingScraper):
     def get_init_dict(self):
         return SPECIAL_DICT.copy()
 
-
-def get_all_pages(scraper):
-    with scraper('guangzhou', '2018-05-03', '2018-05-04') as br:
+def get_all_pages(scraper, place, indate, outdate):
+    with scraper(place, indate, outdate) as br:
         return br.get_all_pages()
-    raise "scraping mistake please restart"
+    raise "scraper({}): scraping make a mistake, please restart".format(type(scraper).__name__)
 
 def run(place, indate, outdate):
-    all_pages = get_all_pages(SpecialBookingScraper)
-    all_special_pages = get_all_pages(SpecialBookingScraper)
+    all_pages = get_all_pages(SpecialBookingScraper, place, indate, outdate)
+    all_special_pages = get_all_pages(SpecialBookingScraper, place, indate, outdate)
+
 
 
 if __name__ == "__main__":
-    #all_pages = get_all_pages(BookingScraper)
-    all_pages = get_all_pages(SpecialBookingScraper)
+    run('guangzhou', '2018-05-03', '2018-05-04')
+
     textfile = open('textfile.txt', 'w', encoding='utf-8')
     textfile.write(all_pages[0])
     textfile.close()
