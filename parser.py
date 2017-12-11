@@ -150,6 +150,7 @@ def get_df(form_func, scraper_name, store_path):
     df = combine_df(form_func, scraper_name)
     df.to_csv(store_path, index=False, encoding='utf-8')
     print(df)
+    return df
 
 
 def get_booking_df():
