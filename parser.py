@@ -148,7 +148,7 @@ def combine_df(form_func, pattern):
 
 def get_df(form_func, scraper_name, store_path):
     df = combine_df(form_func, scraper_name)
-    df.to_csv(store_path, index=False, encoding='utf-8')
+    df.to_csv(store_path, index=False, encoding='utf-8-sig')
     print(df)
     return df
 
