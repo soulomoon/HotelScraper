@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse, urlencode
 from names import BOOKING_SPECIAL_DICT, BOOKING_QUERY_DICT, AIRBNB_QUERY_DICT
 from data import *
 
+
 class PagingScraper(ABC):
     def __init__(self, *args, **kwargs):
         self._url = self.url_search + urlencode(self.init_query_dict)
@@ -25,10 +26,11 @@ class PagingScraper(ABC):
     def collect(self):
         print("loading: {}".format(self._url))
         self.browser.get(self._url)
-        #self.source_list.append(self.browser.page_source)
+        # self.source_list.append(self.browser.page_source)
         if self.counter == 0:
             delete_file(self.__class__.__name__)
-        save_file(self.__class__.__name__+str(self.counter), self.browser.page_source)
+        save_file(self.__class__.__name__ +
+                  str(self.counter), self.browser.page_source)
         print("fetching data done")
         self.counter += 1
 
@@ -38,12 +40,12 @@ class PagingScraper(ABC):
         :param prprty:
         :param value:
         """
-        #update query
+        # update query
         parsed = urlparse(self._url)
         query_dict = parse_qs(parsed.query)
         query_dict.update([(prprty, [value])])
-        query=urlencode(query_dict, doseq=True)
-        #parse url and replace querystring
+        query = urlencode(query_dict, doseq=True)
+        # parse url and replace querystring
         parsed = parsed._replace(query=query)
         print(parsed.geturl())
         self._url = parsed.geturl()
@@ -78,6 +80,7 @@ class PagingScraper(ABC):
     @abstractproperty
     def init_query_dict(self):
         pass
+
 
 class BookingScraper(PagingScraper):
     def __init__(self, place, bdate, edate):
@@ -137,7 +140,8 @@ class AirbnbScraper(PagingScraper):
 
     @property
     def url_search(self):
-        return "{home}/s/{place}/homes?".format(home=self.url_home, place=self.place)
+        return "{home}/s/{place}/homes?".format(
+            home=self.url_home, place=self.place)
 
     def fetch_next_url(self, soup):
         li = soup.find("li", class_="_b8vexar")
@@ -148,15 +152,16 @@ class AirbnbScraper(PagingScraper):
 def get_all_pages(scraper, place, indate, outdate):
     with scraper(place, indate, outdate) as br:
         return br.get_all_pages()
-    raise "scraper({}): scraping make a mistake, please restart".format(type(scraper).__name__)
+    raise "scraper({}): scraping make a mistake, please restart".format(
+        type(scraper).__name__)
 
 
 def run(place, indate, outdate):
     airbnb_all_pages = get_all_pages(AirbnbScraper, place, indate, outdate)
     all_pages = get_all_pages(BookingScraper, place, indate, outdate)
-    all_special_pages = get_all_pages(SpecialBookingScraper, place, indate, outdate)
+    all_special_pages = get_all_pages(
+        SpecialBookingScraper, place, indate, outdate)
 
 
 if __name__ == "__main__":
     run('guangzhou', '2017-12-19', '2017-12-20')
-
