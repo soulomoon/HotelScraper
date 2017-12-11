@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from names import *
 from data import retrieve_files_path, save_file
-from common import price_filter
+from common import price_filter, strip
 
 
 def parse_text(item, text):
@@ -112,11 +112,6 @@ def form_items_from_path(path, type_dict):
         raise "please impelement parser"
     with open(path, 'r', encoding='utf-8') as f:
         return type_dict["parser"](f)
-
-
-def strip(obj):
-    if isinstance(obj, str):
-        return obj.strip()
 
 
 def form_df_from_items(items, type_dict):

@@ -10,3 +10,9 @@ def price_filter(original_function):
         reg = re.search(r"\d+", prcstr)
         return reg.group() if reg else None
     return wrapper
+
+def strip(obj):
+    if isinstance(obj, str):
+        return obj.strip()
+
+
