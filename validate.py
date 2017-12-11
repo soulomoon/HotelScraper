@@ -1,6 +1,9 @@
-def validate_date(self, date):
-    dl = date.split('-')
-    if len(dl) != 3:
-        raise 'date imput error, should be in formate xxxx-xx-xx'
-    return dl
+import datetime
+
+def validate_date(date_text):
+    try:
+        datetime.datetime.strptime(date_text, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+
 
