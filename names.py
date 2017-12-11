@@ -28,6 +28,7 @@ BOOKING_SPECIAL_DICT.update(
 BOOKING_SPECIAL_DICT = MappingProxyType(BOOKING_SPECIAL_DICT)
 
 AIRBNB_QUERY_DICT = MappingProxyType({
+    "local": "en",
     "checkin": "2017-12-09",
     "checkout": "2017-12-15"
 })
