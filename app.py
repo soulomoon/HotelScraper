@@ -1,4 +1,7 @@
 import re
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support import expected_conditions as EC
 from abc import ABC, abstractproperty
 from selenium import webdriver
 from urllib.parse import urlencode
@@ -6,18 +9,17 @@ from bs4 import BeautifulSoup
 from urllib.parse import parse_qs, urlparse, urlencode
 from names import BOOKING_SPECIAL_DICT, BOOKING_QUERY_DICT, AIRBNB_QUERY_DICT
 from data import *
+from time import sleep
 
 
 class PagingScraper(ABC):
     def __init__(self, *args, **kwargs):
         self._url = self.url_search + urlencode(self.init_query_dict)
+        self.browser = webdriver.Firefox()
         self.source_list = []
         self.counter = 0
 
     def __enter__(self):
-        self.browser = webdriver.Firefox()
-        print("loading begin")
-        self.collect()
         return self
 
     def __exit__(self, type, value, traceback):
@@ -61,6 +63,7 @@ class PagingScraper(ABC):
         print("next url not found for: {}".format(self._url))
 
     def get_all_pages(self):
+        self.collect()
         while self.set_next_url():
             self.collect()
         return self.source_list
@@ -94,18 +97,12 @@ class BookingScraper(PagingScraper):
         self.update_url("checkin_year_month_monthday", bdate)
         self.update_url("checkout_year_month_monthday", edate)
 
-    def collect(self):
-        print("loading: {}".format(self._url))
-        self.browser.get(self._url)
+    def get_all_pages(self):
         self.detour(self.browser.page_source)
-        if self.counter == 0:
-            delete_file(self.__class__.__name__)
-        save_file(self.__class__.__name__ +
-                  str(self.counter), self.browser.page_source)
-        print("fetching data done")
-        self.counter += 1
+        return super().get_all_pages()
 
     def detour(self, html):
+        self.browser.get(self._url)
         soup = BeautifulSoup(self.browser.page_source, "html.parser")
         url_rest = soup.find("a", class_="item_name_link")
         if url_rest and url_rest.has_attr('href'):
@@ -145,10 +142,23 @@ class AirbnbScraper(PagingScraper):
         """
         self.place = place
         super().__init__()
-        print(self._url)
         self.update_url("checkin", bdate)
         self.update_url("checkout", edate)
-        print(self._url)
+
+    def get_all_pages(self):
+        self.select()
+        return super().get_all_pages()
+
+    def select(self):
+        self.browser.get(self._url)
+        self.browser.find_element_by_class_name("_1s49j8pw").click()
+        selector = Select(self.browser.find_element_by_id('currency-selector'))
+        selector.select_by_value("HKD")
+        selector = Select(self.browser.find_element_by_id('language-selector'))
+        selector.select_by_value("en")
+        #wait until HKD is selected
+        sleep(5)
+
 
     @property
     def init_query_dict(self):
@@ -177,8 +187,8 @@ def get_all_pages(scraper, place, indate, outdate):
 
 
 def run(place, indate, outdate):
-    all_pages = get_all_pages(BookingScraper, place, indate, outdate)
     airbnb_all_pages = get_all_pages(AirbnbScraper, place, indate, outdate)
+    all_pages = get_all_pages(BookingScraper, place, indate, outdate)
     all_special_pages = get_all_pages(
         SpecialBookingScraper, place, indate, outdate)
 
